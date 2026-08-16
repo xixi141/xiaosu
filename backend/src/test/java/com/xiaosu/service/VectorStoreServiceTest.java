@@ -16,7 +16,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@SpringBootTest(properties = "xiaosu.rag.similarity-threshold=0.0")
 @Import(TestAiConfig.class)
 class VectorStoreServiceTest {
 
