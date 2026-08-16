@@ -3,6 +3,7 @@ package com.xiaosu.tool;
 import com.xiaosu.service.MockDataService;
 import com.xiaosu.tool.model.Employee;
 import com.xiaosu.util.JsonUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Component
+@Slf4j
 public class EmployeeTool {
 
     private final MockDataService data;

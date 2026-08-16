@@ -1,16 +1,14 @@
 package com.xiaosu.service;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import reactor.core.publisher.Flux;
-
-import java.util.Map;
 
 /**
  * LLM 调用的重试边界：仅网络超时（ResourceAccessException）与 5xx 重试（1s/3s 退避）；
@@ -22,12 +20,8 @@ public class LlmGateway {
     @Retryable(retryFor = {ResourceAccessException.class, HttpServerErrorException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 1000, multiplier = 2))
-    public Flux<ChatResponse> stream(ChatClient chatClient, String question,
-                                     Map<String, Object> toolContext, String conversationId) {
-        return chatClient.prompt()
-                .user(question)
-                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
-                .toolContext(toolContext)
+    public Flux<ChatResponse> stream(ChatClient chatClient, Prompt prompt) {
+        return chatClient.prompt(prompt)
                 .stream()
                 .chatResponse();
     }

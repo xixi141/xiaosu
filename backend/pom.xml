@@ -17,6 +17,8 @@
     <properties>
         <java.version>21</java.version>
         <spring-ai.version>1.1.8</spring-ai.version>
+        <!-- surefire 排除组：默认 live（真实 API 测试不参与常规构建），命令行可覆盖 -->
+        <surefire.excludedGroups>live</surefire.excludedGroups>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -103,8 +105,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <!-- 默认排除需要真实 API key 的 live 测试（手动 -Dgroups=live 运行） -->
-                    <excludedGroups>live</excludedGroups>
+                    <!-- 默认排除需要真实 API key 的 live 测试；
+                         手动跑：mvn test -Dtest=AiConnectivityLiveTest -Dsurefire.excludedGroups=none -->
+                    <excludedGroups>${surefire.excludedGroups}</excludedGroups>
                 </configuration>
             </plugin>
         </plugins>
