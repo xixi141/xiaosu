@@ -13,9 +13,11 @@ import com.xiaosu.tool.ToolRecorder;
 import com.xiaosu.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.metadata.Usage;
+import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -45,6 +47,7 @@ public class ChatService {
 
     private final ChatClient chatClient;
     private final ToolCallbackProvider toolCallbackProvider;
+    private final ToolCallingManager toolCallingManager;
     private final VectorStoreService vectorStoreService;
     private final RefusalGuard refusalGuard;
     private final CitationAssembler citationAssembler;
@@ -56,6 +59,7 @@ public class ChatService {
 
     public ChatService(ChatClient chatClient,
                        ToolCallbackProvider toolCallbackProvider,
+                       ToolCallingManager toolCallingManager,
                        VectorStoreService vectorStoreService,
                        RefusalGuard refusalGuard,
                        CitationAssembler citationAssembler,
@@ -66,6 +70,7 @@ public class ChatService {
                        AppProperties props) {
         this.chatClient = chatClient;
         this.toolCallbackProvider = toolCallbackProvider;
+        this.toolCallingManager = toolCallingManager;
         this.vectorStoreService = vectorStoreService;
         this.refusalGuard = refusalGuard;
         this.citationAssembler = citationAssembler;
@@ -180,9 +185,14 @@ public class ChatService {
 
     private ChatClient buildClient(RagContext ctx, String sessionKey) {
         String system = SYSTEM_PROMPT + "\n\n【知识库】\n" + ctx.contextText();
+        // 注意：Spring AI 1.1.8 不会自动把 ToolCallAdvisor 加进链路，必须显式添加，
+        // 否则模型返回 tool_call 后不会执行工具循环（实测坑）。
+        var toolCallAdvisor = ToolCallAdvisor.builder()
+                .toolCallingManager(toolCallingManager)
+                .build();
         return chatClient.mutate()
                 .defaultSystem(system)
-                .defaultAdvisors(chatMemoryManager.advisorFor(sessionKey))
+                .defaultAdvisors(chatMemoryManager.advisorFor(sessionKey), toolCallAdvisor)
                 .defaultToolCallbacks(toolCallbackProvider)
                 .build();
     }
