@@ -69,6 +69,33 @@
 
 - 重做会怎么调整（阶段小结）：先让 AI 把「集成链路」的测试写出来（哪怕用假模型），再写实现——今天的 5 个坑有 4 个是被测试逼出来的，而不是我主动想到的。
 
+### D5（2026-08-20）真实模型联调：工具循环排障完整实录
+
+今天拿着真金白银的 API key 跑验收，暴露了离线测试测不出来的三个深层问题，全部定位到根因并修复：
+
+**问题 1：DashScope embedding 连不上（404/400）**
+- 现象：curl 兼容端点报 400「Required body invalid」，Spring AI 报 404
+- 排障过程：curl 直接探测 → 查阿里云官方文档 → 发现 2026 年起 DashScope 兼容端点改用**业务空间域名**（`{业务空间ID}.cn-beijing.maas.aliyuncs.com`，控制台「业务空间管理」页面可查），旧域名已弃用；换域名后 curl 通了，但 Spring AI 仍 404
+- 第二层根因：Spring AI 的 OpenAiApi 会在 base-url 后自动追加默认路径 `/v1/embeddings`，我们的 base-url 已含 `/compatible-mode/v1` → 实际请求 `.../v1/v1/embeddings`。用 `spring.ai.openai.embedding.embeddings-path=/embeddings` 覆盖解决
+- 教训：**AI 查文档时（包括我自己）都容易漏掉「客户端 SDK 会在 base-url 后拼默认路径」这类隐式行为**，换供应商时这是最高发的事故点
+
+**问题 2：模型不调工具反而用 RAG 内容回答（「员工 001 是哪个部门的」答成了加班 FAQ）**
+- 根因：检索到的无关知识库内容干扰了模型的工具判断
+- 修复：system prompt 改为「按优先级排列的规则」，工具类问题设为最高优先级并明确「不得用知识库内容代替」
+
+**问题 3（最硬核的一个）：DeepSeek 工具循环 400「insufficient tool messages following tool_calls」**
+- 现象：离线测试全绿（假模型），真实 DeepSeek 一跑工具就 400
+- 排障实录：
+  1. 写了一个临时的 RequestLogger Adivsor 打印每次模型调用的消息角色序列，发现工具循环第二次调用的消息是 `[SYSTEM | USER | TOOL]`——assistant 的 tool_calls 消息不见了
+  2. 反编译（javap -c）MessageChatMemoryAdvisor.before() 确认：记忆 advisor 在工具循环的内部调用中重排消息列表，吞掉了 assistant tool_calls 消息
+  3. 修复方案一（改 conversationHistoryEnabled=false）反而更糟：反编译 ToolCallAdvisor 发现 false 时 Spring AI **故意**只发 `[system, 最后一条工具结果]`（对 OpenAI 够用，DeepSeek 不行）
+  4. 最终修复：**彻底放弃 MessageChatMemoryAdvisor，手动管理记忆**——提示词自己拼 [system + 历史干净对话 + 当前提问]，工具循环内部调用不再经过记忆逻辑；conversationHistoryEnabled 保持默认 true
+  5. 顺带修出第二个问题：工具上下文（ToolRecorder）必须放 ToolCallingChatOptions 里，请求级 `.toolContext()` 方法在 1.1.8 中根本不会被工具读取（反编译 DefaultToolCallingManager.buildToolContext 确认）
+- 修复后验收：7.2 三题全过（员工/订单双工具链/时间），7.3 多轮指代全过（「他」→001 出勤 5 天），会话隔离验证通过（另一用户问「他呢？」模型反问要工号）
+- 教训：**「离线全绿 ≠ 真实模型能跑」**。Mock LLM 只会按脚本出牌，真实的工具循环消息构造、供应商对消息序列的严格校验，只有真模型能测出来。但如果一开始就没有离线测试，这些问题会淹没在「连不上」「没响应」的表层现象里，根本到不了反编译定位的深度。
+
+- 怎么验证 AI 代码：① 27 条离线测试全绿（重构后 agent loop 测试依然通过）② 真实 API 验收 7.1-7.4 全过（curl 逐题实测 + 日志页核对工具轨迹）③ 反编译对照（javap -c）确认修复与框架真实行为一致 ④ 每步 commit。
+
 ## 五个必答题（定稿时填）
 
 1. 用了哪些 AI 工具…
