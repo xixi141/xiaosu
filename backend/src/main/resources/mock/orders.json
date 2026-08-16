@@ -1,0 +1,22 @@
+[
+  {"id": "O2026081001", "amount": 12800, "date": "2026-08-10", "customer": "A 公司", "status": "已支付"},
+  {"id": "O2026081002", "amount": 5600, "date": "2026-08-10", "customer": "B 公司", "status": "已支付"},
+  {"id": "O2026081003", "amount": 22000, "date": "2026-08-10", "customer": "C 公司", "status": "已支付"},
+  {"id": "O2026081004", "amount": 3400, "date": "2026-08-10", "customer": "D 公司", "status": "已支付"},
+  {"id": "O2026081101", "amount": 9800, "date": "2026-08-11", "customer": "C 公司", "status": "已支付"},
+  {"id": "O2026081102", "amount": 3200, "date": "2026-08-11", "customer": "D 公司", "status": "已退款"},
+  {"id": "O2026081103", "amount": 15600, "date": "2026-08-11", "customer": "A 公司", "status": "已支付"},
+  {"id": "O2026081104", "amount": 4700, "date": "2026-08-11", "customer": "E 公司", "status": "已支付"},
+  {"id": "O2026081201", "amount": 15600, "date": "2026-08-12", "customer": "A 公司", "status": "已支付"},
+  {"id": "O2026081202", "amount": 8900, "date": "2026-08-12", "customer": "B 公司", "status": "已支付"},
+  {"id": "O2026081203", "amount": 2600, "date": "2026-08-12", "customer": "F 公司", "status": "已支付"},
+  {"id": "O2026081204", "amount": 13800, "date": "2026-08-12", "customer": "C 公司", "status": "已支付"},
+  {"id": "O2026081205", "amount": 5100, "date": "2026-08-12", "customer": "D 公司", "status": "已退款"},
+  {"id": "O2026081301", "amount": 4200, "date": "2026-08-13", "customer": "E 公司", "status": "已支付"},
+  {"id": "O2026081302", "amount": 11800, "date": "2026-08-13", "customer": "A 公司", "status": "已支付"},
+  {"id": "O2026081303", "amount": 6600, "date": "2026-08-13", "customer": "B 公司", "status": "已支付"},
+  {"id": "O2026081304", "amount": 2900, "date": "2026-08-13", "customer": "F 公司", "status": "已支付"},
+  {"id": "O2026081401", "amount": 8900, "date": "2026-08-14", "customer": "F 公司", "status": "已支付"},
+  {"id": "O2026081402", "amount": 17300, "date": "2026-08-14", "customer": "C 公司", "status": "已支付"},
+  {"id": "O2026081403", "amount": 4500, "date": "2026-08-14", "customer": "D 公司", "status": "已退款"}
+]
