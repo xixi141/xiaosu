@@ -8,6 +8,34 @@ export interface HealthDto {
   time: string
 }
 
+export interface DocumentDto {
+  id: number
+  filename: string
+  fileType: string
+  fileSize: number
+  status: 'PARSING' | 'READY' | 'FAILED'
+  chunkCount: number
+  errorMessage: string | null
+  createdAt: string
+  chunks: ChunkPreview[]
+}
+
+export interface ChunkPreview {
+  index: number
+  preview: string
+  charCount: number
+}
+
+export interface IngestResult {
+  documentId: number | null
+  filename: string
+  sha256: string
+  status: string
+  chunkCount: number
+  duplicate: boolean
+  errorMessage: string | null
+}
+
 export interface Citation {
   documentId: string
   filename: string

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import DocumentsPage from './pages/DocumentsPage'
 import SettingsPage from './pages/SettingsPage'
 
 type Tab = 'chat' | 'documents' | 'logs' | 'settings'
@@ -37,7 +38,7 @@ export default function App() {
       </header>
       <main className="mx-auto max-w-6xl px-4 py-6">
         {tab === 'chat' && <div className="text-slate-500">调试聊天页（Task 14 后接入）</div>}
-        {tab === 'documents' && <div className="text-slate-500">文档管理页（Task 9 后接入）</div>}
+        {tab === 'documents' && <DocumentsPage />}
         {tab === 'logs' && <div className="text-slate-500">对话日志页（Task 15 后接入）</div>}
         {tab === 'settings' && <SettingsPage />}
       </main>
