@@ -1,0 +1,48 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: xiaosu
+  datasource:
+    url: jdbc:h2:file:${DATA_DIR:./data}/xiaosu;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  ai:
+    openai:
+      # 占位符 key 兜底：Spring AI 的 OpenAiApi 在 key 为空时直接拒绝实例化（应用无法启动）。
+      # 启动时不发网络请求，占位符无害；真实 key 由 .env 注入（测试用 Mock 模型，不需要真 key）。
+      api-key: ${DEEPSEEK_API_KEY:sk-placeholder}
+      base-url: ${OPENAI_BASE_URL:https://api.deepseek.com}
+      chat:
+        options:
+          model: ${CHAT_MODEL:deepseek-chat}
+          temperature: ${CHAT_TEMPERATURE:0.3}
+      embedding:
+        api-key: ${DASHSCOPE_API_KEY:sk-placeholder}
+        base-url: ${EMBEDDING_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+        options:
+          model: ${EMBEDDING_MODEL:text-embedding-v4}
+          dimensions: ${EMBEDDING_DIMENSIONS:1024}
+
+xiaosu:
+  upload-dir: ${UPLOAD_DIR:./data/uploads}
+  vector-store-path: ${VECTOR_STORE_PATH:./data/vector-store.json}
+  rag:
+    top-k: ${RAG_TOP_K:4}
+    similarity-threshold: ${RAG_THRESHOLD:0.35}
+    chunk-size: ${RAG_CHUNK_SIZE:600}
+    chunk-overlap: ${RAG_CHUNK_OVERLAP:80}
+  dingtalk:
+    enabled: ${DINGTALK_ENABLED:false}
+    client-id: ${DINGTALK_CLIENT_ID:}
+    client-secret: ${DINGTALK_CLIENT_SECRET:}
