@@ -14,8 +14,8 @@
 
 ```bash
 ./scripts/dev.sh    # 一条命令起前后端（读 .env）
-./scripts/seed.sh   # 导入 knowledge/ 全部文档
-./scripts/test.sh   # 27 条离线测试（Mock 模型，不花 API 钱）
+./scripts/seed.sh   # 导入 knowledge/ 全部文档（Windows 下自动用系统原生 curl，MSYS curl 中文文件名会按 GBK 发出 → 乱码入库，见 AI_USAGE.md D6）
+./scripts/test.sh   # 26 条离线测试（Mock 模型，不花 API 钱）
 ./scripts/start.sh  # 本地生产模式（打包 jar）
 # live 测试：source .env 后 mvn test -Dtest=AiConnectivityLiveTest -Dsurefire.excludedGroups=none
 ```
@@ -52,7 +52,7 @@
 
 - 7.1/7.2/7.3/7.4/7.6 API 侧实测全过；7.5 兜底文案实测通过
 - 钉钉 IM 已打通（Stream 连接正常、消息收发/会话隔离/引用卡片实测通过）
-- 离线测试 27/27 全绿；GitHub 公开仓库已推送（xixi141/xiaosu）
+- 离线测试 26/26 全绿；GitHub 公开仓库已推送（xixi141/xiaosu）
 - 待用户：录演示视频、云服务器部署、发送投递邮件
 
 ## AI_USAGE.md 维护约定
