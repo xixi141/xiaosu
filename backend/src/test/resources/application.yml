@@ -1,0 +1,38 @@
+# 测试环境配置：内存 H2 + 临时目录，不触碰开发环境的 data/ 文件库。
+# 注意：测试 classpath 的同名文件会整体遮蔽主 application.yml（不合并），
+# 因此 spring.ai 配置必须在此完整复制（占位符 key 即可，测试用 Fake 模型不触网）。
+spring:
+  datasource:
+    url: jdbc:h2:mem:xiaosu-test;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+  ai:
+    openai:
+      api-key: ${DEEPSEEK_API_KEY:sk-placeholder}
+      base-url: ${OPENAI_BASE_URL:https://api.deepseek.com}
+      chat:
+        options:
+          model: ${CHAT_MODEL:deepseek-chat}
+          temperature: ${CHAT_TEMPERATURE:0.3}
+      embedding:
+        api-key: ${DASHSCOPE_API_KEY:sk-placeholder}
+        base-url: ${EMBEDDING_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+        options:
+          model: ${EMBEDDING_MODEL:text-embedding-v4}
+          dimensions: ${EMBEDDING_DIMENSIONS:1024}
+
+xiaosu:
+  upload-dir: ${java.io.tmpdir}/xiaosu-test-uploads
+  vector-store-path: ${java.io.tmpdir}/xiaosu-test-vector-store.json
+  rag:
+    top-k: ${RAG_TOP_K:4}
+    similarity-threshold: ${RAG_THRESHOLD:0.35}
+    chunk-size: ${RAG_CHUNK_SIZE:600}
+    chunk-overlap: ${RAG_CHUNK_OVERLAP:80}
+  dingtalk:
+    enabled: false
