@@ -4,6 +4,8 @@
 
 「小苏」是面向公司员工的内部 AI 助手：员工在钉钉里 @ 它就能查规章制度（带原文引用）、查考勤订单等实时数据；管理员通过 Web 后台维护知识库、查看全部对话日志与 Token 消耗。
 
+🌐 在线演示：<https://xiaosu.lingke.store>
+
 ## ✨ 功能一览
 
 （截图占位：钉钉对话截图 + 后台截图，提交前补充）
@@ -21,13 +23,13 @@
 ```mermaid
 flowchart LR
     A[员工<br/>钉钉 @小苏] -->|Stream WebSocket<br/>长连接| B[DingTalkListener<br/>同步 ACK]
-    B -->|@Async| C[ChatService<br/>Agent 编排]
+    B -->|"@Async"| C[ChatService<br/>Agent 编排]
     C --> D[(H2<br/>document / chat_log)]
     C --> E[(SimpleVectorStore<br/>JSON 持久化)]
     C --> F[DeepSeek<br/>chat]
     E --> G[DashScope<br/>text-embedding-v4]
     C --> H[4 个 @Tool<br/>员工/考勤/订单/时间]
-    I[管理员浏览器] -->|REST / SSE| J[React 19 后台]
+    I[管理员浏览器] -->|"REST / SSE"| J[React 19 后台]
     J --> C
 ```
 
@@ -37,7 +39,7 @@ flowchart LR
 
 ```bash
 # 1. 环境：Java 21 / Node 20+ / pnpm / Maven 3.9+
-git clone <仓库地址> && cd xiaosu
+git clone https://github.com/xixi141/xiaosu.git && cd xiaosu
 cp .env.example .env   # 填入 DEEPSEEK_API_KEY、DASHSCOPE_API_KEY（钉钉凭证可选）
 
 # 2. 一条命令启动（前后端 + 自动加载 .env）
@@ -55,7 +57,7 @@ cp .env.example .env   # 填入 DEEPSEEK_API_KEY、DASHSCOPE_API_KEY（钉钉凭
 cd web && pnpm install && pnpm build && cd ..
 
 # 云服务器（已装 Docker）
-git clone <仓库地址> && cd xiaosu
+git clone https://github.com/xixi141/xiaosu.git && cd xiaosu
 cp .env.example .env   # 真实 key + DINGTALK_ENABLED=true + 钉钉凭证
 docker compose up -d --build
 # 访问 http://<服务器IP>/  → 管理后台；钉钉测试群 @小苏 即用
@@ -99,7 +101,7 @@ docker compose up -d --build
 ## 🧪 测试
 
 ```bash
-./scripts/test.sh   # 24 条测试全部离线（自写 Fake LLM/Embedding，不花 API 钱）
+./scripts/test.sh   # 26 条测试全部离线（自写 Fake LLM/Embedding，不花 API 钱）
 ```
 
 覆盖：文档入库/去重/同名替换/删除级联、检索持久化、切块器、RAG 引用与拒答、多轮会话、**脚本化 LLM 驱动真实工具执行的 agent loop**、SSE 事件序列（MockMvc）。真实 API 连通性测试（@Tag("live")）默认排除，手动跑：`mvn test -Dgroups=live`。
