@@ -15,12 +15,12 @@ public class AiClientConfig {
     }
 
     /**
-     * 收集所有 @Tool 注解方法，注册为模型可调用的工具。
-     * 工具组件（EmployeeTool 等）就位后自动生效；Object[] 会扫全部 bean，
-     * 只有带 @Tool 方法的类产生回调。
+     * 注册模型可调用的工具。
+     * 注意：不能用 Object[] 注入全部 bean——会与 Spring AI 的 toolCallbackResolver
+     * 自动装配形成循环依赖（实测启动失败）。Task 16 起显式传入工具 bean。
      */
     @Bean
-    public ToolCallbackProvider toolCallbackProvider(Object[] toolObjects) {
-        return MethodToolCallbackProvider.builder().toolObjects(toolObjects).build();
+    public ToolCallbackProvider toolCallbackProvider() {
+        return MethodToolCallbackProvider.builder().toolObjects().build();
     }
 }
