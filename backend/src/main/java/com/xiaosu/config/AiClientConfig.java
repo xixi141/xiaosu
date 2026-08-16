@@ -1,5 +1,9 @@
 package com.xiaosu.config;
 
+import com.xiaosu.tool.AttendanceTool;
+import com.xiaosu.tool.DateTimeTool;
+import com.xiaosu.tool.EmployeeTool;
+import com.xiaosu.tool.OrderTool;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
@@ -15,12 +19,15 @@ public class AiClientConfig {
     }
 
     /**
-     * 注册模型可调用的工具。
-     * 注意：不能用 Object[] 注入全部 bean——会与 Spring AI 的 toolCallbackResolver
-     * 自动装配形成循环依赖（实测启动失败）。Task 16 起显式传入工具 bean。
+     * 注册模型可调用的工具（显式列出，避免与 toolCallbackResolver 循环依赖）。
      */
     @Bean
-    public ToolCallbackProvider toolCallbackProvider() {
-        return MethodToolCallbackProvider.builder().toolObjects().build();
+    public ToolCallbackProvider toolCallbackProvider(EmployeeTool employeeTool,
+                                                     AttendanceTool attendanceTool,
+                                                     OrderTool orderTool,
+                                                     DateTimeTool dateTimeTool) {
+        return MethodToolCallbackProvider.builder()
+                .toolObjects(employeeTool, attendanceTool, orderTool, dateTimeTool)
+                .build();
     }
 }
