@@ -11,6 +11,7 @@ vector-store.json
 backend/target/
 web/node_modules/
 web/dist/
+*.tsbuildinfo
 
 # IDE
 .idea/
