@@ -36,6 +36,28 @@ export interface IngestResult {
   errorMessage: string | null
 }
 
+export interface LogDto {
+  id: number
+  sessionId: string
+  userId: string
+  question: string
+  answer: string
+  model: string
+  totalTokens: number
+  latencyMs: number
+  status: 'SUCCESS' | 'FALLBACK' | 'FAILED' | 'REFUSED'
+  isRefused: boolean
+  errorMessage: string | null
+  toolCalls: ToolCallInfo[]
+  citations: Citation[]
+  createdAt: string
+}
+
+export interface LogPageDto {
+  items: LogDto[]
+  total: number
+}
+
 export interface Citation {
   documentId: string
   filename: string
