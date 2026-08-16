@@ -4,8 +4,10 @@ import com.xiaosu.dto.DocumentDto;
 import com.xiaosu.dto.IngestResult;
 import com.xiaosu.service.DocumentIngestService;
 import com.xiaosu.service.DocumentService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -27,7 +29,13 @@ public class DocumentController {
     public ResponseEntity<IngestResult> upload(@RequestParam("file") MultipartFile file,
                                                @RequestParam(value = "overwrite", defaultValue = "false") boolean overwrite)
             throws IOException {
-        IngestResult result = ingestService.ingest(file.getBytes(), file.getOriginalFilename(), overwrite);
+        String filename = file.getOriginalFilename();
+        // 防乱码入库：GBK 字节被按 UTF-8 解码的产物是 U+FFFD，入库后会污染列表展示与 RAG 引用
+        if (filename != null && filename.indexOf('\uFFFD') >= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "文件名包含乱码字符，请改用 UTF-8 编码的文件名重新上传");
+        }
+        IngestResult result = ingestService.ingest(file.getBytes(), filename, overwrite);
         return ResponseEntity.ok(result);
     }
 
