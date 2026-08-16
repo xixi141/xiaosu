@@ -48,6 +48,27 @@
 
 - 怎么验证 AI 代码：① 8 个测试类逐步 TDD（切块器 4 条、VectorStore 2 条、入库 4 条全绿，全部 Fake 模型离线跑）；② 编译失败→javap 查真实 API→重写→重跑，这个循环今天走了 5 轮；③ 订单/考勤 mock 数据的统计口径与测试断言手工核算一致（17 笔有效订单/3 笔退款、001 上周出勤 5 天）；④ 前端 strict TS 构建零错误；⑤ 每任务 commit（D2 共 6 个 commit）。
 
+### D3+D4（2026-08-18 至 08-19）
+
+- 今天做了什么：ChatService 问答编排核心（拒答预检→RAG 检索→引用→多轮记忆→工具回调→流式）、SSE 流式 + 调试聊天页、日志查询 API + 日志页、4 个 @Tool 工具 + agent loop 测试、钉钉业务接入（会话隔离 + 引用卡片 + 兜底）、设置页。
+
+- 给 AI 的 prompt 例子（写 ChatService 前我让 AI 先查 API 的命令）：
+
+> 「用 javap 检查 spring-ai-client-chat 1.1.8 的 ChatClient.Builder 有哪些方法（defaultSystem/defaultAdvisors/defaultTools/mutate），确认 MessageChatMemoryAdvisor 的构造方式」
+
+- 哪里能用/哪里必须改（继续「javap 实测」模式，又抓出 5 个计划外的坑）：
+  1. **MessageChatMemoryAdvisor 强制要 conversationId**：请求时必须 `.advisors(a -> a.param(ChatMemory.CONVERSATION_ID, key))`，否则运行时抛「conversationId cannot be null」——测试立刻暴露，改成 sessionKey 传入。
+  2. **ToolCallAdvisor 不会自动装配**：模型返回 tool_call 后工具根本不执行（测试断言 answer 为空）。用 javap 反编译发现 1.1.8 里没有任何自动配置把它加进 advisor 链，必须在 ChatClient 上显式 `.defaultAdvisors(memoryAdvisor, ToolCallAdvisor.builder().toolCallingManager(...).build())`。这是全项目最隐蔽的坑——不加它，验收 7.2 会全线崩。
+  3. **AssistantMessage 带 toolCalls 的构造器是 protected 且类为 final**：测试里没法直接构造「模型返回工具调用」的假响应，改用反射（测试代码里有注释说明原因）。
+  4. **测试 classpath 的 application.yml 会整体遮蔽主配置**（不是合并）：我只写了数据源覆盖，结果 spring.ai 配置全丢、应用起不来。补全后解决。
+  5. 其他小坑：`MessageWindowChatMemory` 没有 int 构造器要走 builder；`ToolContext` 在 `chat.model` 包不在 `tool.context`；`Map.of` 最多 10 对键值；Lombok `log` 字段被局部变量遮蔽导致编译失败；MockMvc 测 Flux 流式要用 asyncDispatch 才能拿到完整事件序列。
+
+- 被带沟里的经历：最值得记的是第 2 条。AI 计划的 ChatService 直接用 `.defaultTools(...)`，计划里完全没提 ToolCallAdvisor——如果我在联调阶段才用真实 API 测工具调用，会看到「模型一直在要工具、工具一直不执行」的诡异现象，排查成本极高。**是「Mock LLM 触发真实工具」这条离线测试把坑提前压出来的**：不用花一分钱 API 费、不用等网络，10 分钟内定位到 advisor 缺失。这让我彻底确信「能离线测的绝不在线测」。
+
+- 怎么验证 AI 代码：① 24 条测试全绿（含 agent loop 测试：脚本 LLM 第一轮吐 tool_call → 真实 OrderTool 统计 17 笔订单 → 第二轮吐答案 → chat_log 完整记录）；② MockMvc 断言 SSE 事件序列 meta→token→done；③ 前端 strict TS 构建零错误；④ 每任务 commit（D3+D4 共 5 个 commit）。
+
+- 重做会怎么调整（阶段小结）：先让 AI 把「集成链路」的测试写出来（哪怕用假模型），再写实现——今天的 5 个坑有 4 个是被测试逼出来的，而不是我主动想到的。
+
 ## 五个必答题（定稿时填）
 
 1. 用了哪些 AI 工具…
